@@ -13,7 +13,6 @@
       overflow: hidden;
       background: #f2f2f2;
     }
-
     canvas {
       display: block;
     }
@@ -22,6 +21,7 @@
 <body>
 
 <script type="module">
+  /* ❗ TAM CDN URL – browser için şart */
   import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
   import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
   import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
@@ -35,11 +35,10 @@
     45,
     window.innerWidth / window.innerHeight,
     0.1,
-    2000
+    3000
   );
 
-  // Başlangıç (uzak)
-  camera.position.set(120, 120, 120);
+  camera.position.set(200, 180, 200);
 
   /* 🖥️ RENDER */
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -48,21 +47,16 @@
   document.body.appendChild(renderer.domElement);
 
   /* 💡 IŞIK */
-  const ambient = new THREE.AmbientLight(0xffffff, 0.9);
-  scene.add(ambient);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
 
   const dir = new THREE.DirectionalLight(0xffffff, 0.6);
   dir.position.set(100, 200, 100);
   scene.add(dir);
 
-  /* 🖱️ ORBIT CONTROLS (Sketchfab gibi) */
+  /* 🖱️ ORBIT CONTROLS (Sketchfab hissi) */
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-
-  controls.enablePan = true;
-  controls.enableZoom = true;
-  controls.enableRotate = true;
+  controls.dampingFactor = 0.06;
 
   controls.mouseButtons = {
     LEFT: THREE.MOUSE.ROTATE,
@@ -70,26 +64,29 @@
     RIGHT: THREE.MOUSE.DOLLY
   };
 
-  controls.minDistance = 20;
-  controls.maxDistance = 400;
-
+  controls.minDistance = 30;
+  controls.maxDistance = 600;
   controls.target.set(0, 0, 0);
 
-  /* 🎥 INTRO ANİMASYONU */
-  let intro = {
-    start: new THREE.Vector3(200, 180, 200),
-    end: new THREE.Vector3(80, 60, 80),
-    progress: 0
-  };
+  /* 🎥 INTRO */
+  const introStart = new THREE.Vector3(300, 260, 300);
+  const introEnd   = new THREE.Vector3(120, 80, 120);
+  let introProgress = 0;
 
-  camera.position.copy(intro.start);
+  camera.position.copy(introStart);
 
   /* 📦 MODEL */
   const loader = new GLTFLoader();
-  loader.load('./lowpoly2.glb', (gltf) => {
-    const model = gltf.scene;
-    scene.add(model);
-  });
+  loader.load(
+    './lowpoly2.glb',
+    (gltf) => {
+      scene.add(gltf.scene);
+    },
+    undefined,
+    (err) => {
+      console.error('GLB yüklenemedi:', err);
+    }
+  );
 
   /* 🔄 RESIZE */
   window.addEventListener('resize', () => {
@@ -102,11 +99,10 @@
   function animate() {
     requestAnimationFrame(animate);
 
-    // Intro kamera geçişi
-    if (intro.progress < 1) {
-      intro.progress += 0.008;
-      const eased = intro.progress * (2 - intro.progress); // easeOut
-      camera.position.lerpVectors(intro.start, intro.end, eased);
+    if (introProgress < 1) {
+      introProgress += 0.008;
+      const ease = introProgress * (2 - introProgress);
+      camera.position.lerpVectors(introStart, introEnd, ease);
     } else {
       controls.update();
     }
