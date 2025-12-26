@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>City Three</title>
+  <title>City Three – Stable</title>
+
   <style>
     html, body {
       margin: 0;
@@ -11,19 +12,24 @@
       overflow: hidden;
       background: #f2f2f2;
     }
-    canvas { display: block; }
+    canvas {
+      display: block;
+    }
   </style>
 </head>
 <body>
 
-<script type="module">
-  import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-  import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-  import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+<!-- ✅ GLOBAL THREE (MODULE YOK) -->
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
 
+<script>
+  /* 🧱 SAHNE */
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf2f2f2);
 
+  /* 📷 KAMERA */
   const camera = new THREE.PerspectiveCamera(
     45,
     window.innerWidth / window.innerHeight,
@@ -32,42 +38,58 @@
   );
   camera.position.set(300, 220, 300);
 
+  /* 🖥️ RENDER */
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   document.body.appendChild(renderer.domElement);
 
+  /* 💡 IŞIK */
   scene.add(new THREE.AmbientLight(0xffffff, 0.9));
   const dir = new THREE.DirectionalLight(0xffffff, 0.6);
   dir.position.set(100, 200, 100);
   scene.add(dir);
 
-  const controls = new OrbitControls(camera, renderer.domElement);
+  /* 🖱️ ORBIT CONTROLS – SKETCHFAB GİBİ */
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
+
+  controls.enablePan = true;
+  controls.enableRotate = true;
+  controls.enableZoom = true;
+
   controls.mouseButtons = {
     LEFT: THREE.MOUSE.ROTATE,
     MIDDLE: THREE.MOUSE.PAN,
     RIGHT: THREE.MOUSE.DOLLY
   };
+
   controls.minDistance = 40;
   controls.maxDistance = 800;
   controls.target.set(0, 0, 0);
 
-  const loader = new GLTFLoader();
+  /* 📦 MODEL */
+  const loader = new THREE.GLTFLoader();
   loader.load(
     "./lowpoly2.glb",
-    gltf => scene.add(gltf.scene),
+    function (gltf) {
+      scene.add(gltf.scene);
+    },
     undefined,
-    err => console.error("GLB error:", err)
+    function (err) {
+      console.error("GLB yüklenemedi:", err);
+    }
   );
 
+  /* 🔄 RESIZE */
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
+  /* 🎬 LOOP */
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
