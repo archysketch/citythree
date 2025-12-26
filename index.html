@@ -12,17 +12,15 @@
       overflow: hidden;
       background: #f2f2f2;
     }
-    canvas {
-      display: block;
-    }
+    canvas { display: block; }
   </style>
 </head>
 <body>
 
-<!-- ✅ GLOBAL THREE (MODULE YOK) -->
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+<!-- ✅ STABİL THREE SÜRÜMÜ -->
+<script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
+<script src="https://unpkg.com/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
   /* 🧱 SAHNE */
@@ -55,10 +53,6 @@
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
 
-  controls.enablePan = true;
-  controls.enableRotate = true;
-  controls.enableZoom = true;
-
   controls.mouseButtons = {
     LEFT: THREE.MOUSE.ROTATE,
     MIDDLE: THREE.MOUSE.PAN,
@@ -73,13 +67,9 @@
   const loader = new THREE.GLTFLoader();
   loader.load(
     "./lowpoly2.glb",
-    function (gltf) {
-      scene.add(gltf.scene);
-    },
+    gltf => scene.add(gltf.scene),
     undefined,
-    function (err) {
-      console.error("GLB yüklenemedi:", err);
-    }
+    err => console.error("GLB yüklenemedi:", err)
   );
 
   /* 🔄 RESIZE */
