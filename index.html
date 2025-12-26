@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>3D Logo</title>
-
-  <script type="module"
-    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
+  <meta charset="UTF-8" />
+  <title>Low Poly City – Three.js</title>
 
   <style>
     html, body {
@@ -14,62 +10,111 @@
       padding: 0;
       width: 100%;
       height: 100%;
-      background: transparent;
       overflow: hidden;
+      background: #f2f2f2;
     }
 
-    model-viewer {
-      position: fixed;
-      top: 6px;
-      left: 10px;
-      width: 80px;
-      height: 80px;
-      background: transparent;
-      pointer-events: none;
-    }
-
-    model-viewer::part(progress-bar) {
-      display: none !important;
+    canvas {
+      display: block;
     }
   </style>
 </head>
 <body>
 
-<model-viewer
-  id="logo"
-  src="./communemonocrome.glb"
+<script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+  import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+  import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
-  auto-rotate
-  rotation-per-second="10deg"
-  auto-rotate-delay="0"
+  /* 🧱 SAHNE */
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf2f2f2);
 
-  interaction-prompt="none"
-  disable-zoom
+  /* 📷 KAMERA */
+  const camera = new THREE.PerspectiveCamera(
+    45,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    2000
+  );
 
-  exposure="1.35"
-  shadow-intensity="0.12"
-  shadow-softness="0.6"
-  tone-mapping="neutral"
+  // Başlangıç (uzak)
+  camera.position.set(120, 120, 120);
 
-  environment-image="https://modelviewer.dev/shared-assets/environments/aircraft_workshop_01_1k.hdr"
+  /* 🖥️ RENDER */
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  document.body.appendChild(renderer.domElement);
 
-  camera-orbit="0deg 75deg 2.6m"
-  min-camera-orbit="-180deg 75deg 2.6m"
-  max-camera-orbit="180deg 75deg 2.6m"
+  /* 💡 IŞIK */
+  const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+  scene.add(ambient);
 
-  camera-target="0m 0m 0m"
+  const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+  dir.position.set(100, 200, 100);
+  scene.add(dir);
 
-  scale="0.4 0.4 0.4">
-</model-viewer>
+  /* 🖱️ ORBIT CONTROLS (Sketchfab gibi) */
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
 
-<script>
-  const viewer = document.getElementById('logo');
+  controls.enablePan = true;
+  controls.enableZoom = true;
+  controls.enableRotate = true;
 
-  window.addEventListener('mousemove', (e) => {
-    const x = (e.clientX / window.innerWidth) - 0.5;
-    const angle = -x * 40;
-    viewer.cameraOrbit = `${angle}deg 75deg 2.6m`;
+  controls.mouseButtons = {
+    LEFT: THREE.MOUSE.ROTATE,
+    MIDDLE: THREE.MOUSE.PAN,
+    RIGHT: THREE.MOUSE.DOLLY
+  };
+
+  controls.minDistance = 20;
+  controls.maxDistance = 400;
+
+  controls.target.set(0, 0, 0);
+
+  /* 🎥 INTRO ANİMASYONU */
+  let intro = {
+    start: new THREE.Vector3(200, 180, 200),
+    end: new THREE.Vector3(80, 60, 80),
+    progress: 0
+  };
+
+  camera.position.copy(intro.start);
+
+  /* 📦 MODEL */
+  const loader = new GLTFLoader();
+  loader.load('./lowpoly2.glb', (gltf) => {
+    const model = gltf.scene;
+    scene.add(model);
   });
+
+  /* 🔄 RESIZE */
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  /* 🎬 LOOP */
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // Intro kamera geçişi
+    if (intro.progress < 1) {
+      intro.progress += 0.008;
+      const eased = intro.progress * (2 - intro.progress); // easeOut
+      camera.position.lerpVectors(intro.start, intro.end, eased);
+    } else {
+      controls.update();
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
 </script>
 
 </body>
